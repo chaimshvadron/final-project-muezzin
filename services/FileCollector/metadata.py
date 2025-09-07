@@ -3,7 +3,7 @@ import json
 from pydub import AudioSegment
 
 class FileMetadataCollector:
-    def __init__(self, file_path):
+    def __init__(self, file_path: str):
         self.file_path = file_path
 
     def collect_metadata(self):
@@ -29,5 +29,5 @@ class FileMetadataCollector:
     def to_json(self):
         metadata = self.collect_metadata()
         if metadata is not None:
-            return json.dumps(metadata)
+            return json.dumps({self.file_path: metadata})
         return None

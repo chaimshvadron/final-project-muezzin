@@ -4,12 +4,12 @@ from datetime import datetime
 
 # reading files from a directory
 class FileCollector:
-    def __init__(self, path):
+    def __init__(self, path: str):
         self.path = path
-        
-        
-    def _changed_name_timestamp(self, file_path):
-        try:            
+
+
+    def _changed_name_timestamp(self, file_path: str) -> str | None:
+        try:
             state = os.stat(file_path)
             current_time = datetime.now().strftime("%Y%m%d-%H%M%S")
             base_name = os.path.basename(file_path)
