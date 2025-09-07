@@ -1,5 +1,6 @@
 import os
 from pymongo import MongoClient
+from gridfs import GridFS
 
 class MongoDBConnection:
     def __init__(self, connection_string, db_name):

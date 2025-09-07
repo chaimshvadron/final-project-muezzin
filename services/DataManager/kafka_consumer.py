@@ -17,3 +17,4 @@ class KafkaConsumerManager:
         auto_offset_reset='earliest',
         group_id=self.group_id
     )
+    
