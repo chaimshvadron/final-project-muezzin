@@ -1,7 +1,7 @@
 from services.DataManager.elastic.elastic_connection import ElasticConnection
 from services.DataManager.elastic.elastic_dal import ElasticDAL
-from utils.mongo_connection import MongoDBConnection
-from services.DataManager.db.mongo_dal import MongoDAL
+from utils.mongo.mongo_connection import MongoDBConnection
+from utils.mongo.mongo_dal import MongoDAL
 from utils.logger import Logger
 import hashlib
 
