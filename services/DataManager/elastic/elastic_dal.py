@@ -1,4 +1,7 @@
 from elasticsearch import Elasticsearch
+from utils.logger import Logger
+
+logger = Logger.get_logger(service_name="DataManager")
 
 class ElasticDAL:
     def __init__(self, es_client: Elasticsearch, index_name: str):
@@ -9,17 +12,18 @@ class ElasticDAL:
         try:
             if not self.es.indices.exists(index=self.index_name):
                 self.es.indices.create(index=self.index_name, mappings=mapping)
-                print(f"Index '{self.index_name}' created.")
+                logger.info(f"Index '{self.index_name}' created.")
             else:
-                print(f"Index '{self.index_name}' already exists.")
+                logger.info(f"Index '{self.index_name}' already exists.")
         except Exception as e:
-            print(f"Error creating index '{self.index_name}': {e}")
+            logger.error(f"Error creating index '{self.index_name}': {e}")
             raise
         
     def index_metadata(self, metadata: dict):
         try:
             response = self.es.index(index=self.index_name, document=metadata)
+            logger.info(f"Metadata indexed in '{self.index_name}': {response['_id']}")
             return response
         except Exception as e:
-            print(f"Error indexing metadata: {e}")
+            logger.error(f"Error indexing metadata: {e}")
             raise
