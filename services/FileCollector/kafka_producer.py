@@ -1,5 +1,8 @@
 from kafka import KafkaProducer
 import json
+from utils.logger import Logger
+
+logger = Logger.get_logger(service_name="FileCollector")
 
 class KafkaFileMetadataProducer:
     def __init__(self, bootstrap_servers: str, topic: str):
@@ -11,5 +14,6 @@ class KafkaFileMetadataProducer:
         try:
             self.producer.send(self.topic, file_metadata)
             self.producer.flush()
+            logger.info(f"Sent file metadata to topic {self.topic}: {file_metadata}")
         except Exception as e:
-            print(f"Failed to send file metadata: {e}")
+            logger.error(f"Failed to send file metadata: {e}")
