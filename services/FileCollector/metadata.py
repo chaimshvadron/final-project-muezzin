@@ -1,6 +1,8 @@
 import os
 from mutagen import File as MutagenFile
 from datetime import datetime
+from utils.logger import Logger
+logger = Logger.get_logger(service_name="FileCollector")
 
 class FileMetadataCollector:
     def __init__(self, file_path: str):
@@ -19,12 +21,13 @@ class FileMetadataCollector:
                 "creation_time": datetime.fromtimestamp(state.st_birthtime),
                 "audio_length": length_in_seconds,
             }
+            logger.info(f"Metadata collected for file {self.file_path}: {metadata}")
             return metadata
         except FileNotFoundError:
-            print(f"File not found: {self.file_path}")
+            logger.error(f"File not found: {self.file_path}")
             return None
         except Exception as e:
-            print(f"Error accessing {self.file_path}: {e}")
+            logger.error(f"Error accessing {self.file_path}: {e}")
             return None
 
     def to_dict(self):
