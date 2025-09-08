@@ -1,4 +1,4 @@
-from services.DataManager.kafka_consumer import KafkaConsumerManager
+from utils.kafka.consumer_helper import KafkaConsumerManager
 from services.DataManager.data_manager import DataManager
 import os
 from dotenv import load_dotenv
@@ -13,7 +13,7 @@ if __name__ == "__main__":
     kafka_topic = os.getenv("KAFKA_TOPIC")
     group_id = os.getenv("KAFKA_GROUP_ID")
     
-    consumer_manager = KafkaConsumerManager(kafka_server, group_id, kafka_topic)
+    consumer_manager = KafkaConsumerManager(kafka_server, group_id, kafka_topic, logger=logger)
     
     mongo_uri = os.getenv("MONGO_URI")
     mongo_db = os.getenv("MONGO_DB")
