@@ -1,7 +1,7 @@
 from elasticsearch import Elasticsearch
 
 class ElasticConnection:
-    def __init__(self, uri):
+    def __init__(self, uri: str):
         self.uri = uri
         self.client = None
 

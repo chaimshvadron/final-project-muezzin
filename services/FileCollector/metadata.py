@@ -1,5 +1,4 @@
 import os
-import json
 from mutagen import File as MutagenFile
 from datetime import datetime
 
@@ -28,8 +27,8 @@ class FileMetadataCollector:
             print(f"Error accessing {self.file_path}: {e}")
             return None
 
-    def to_json(self):
+    def to_dict(self):
         metadata = self.collect_metadata()
         if metadata is not None:
-            return json.dumps({self.file_path: metadata}, default=str)
+            return metadata
         return None

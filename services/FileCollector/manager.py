@@ -11,6 +11,10 @@ class FileCollectorManager:
         files = self.collector.collect_files()
         for file_path in files:
             metadata_collector = FileMetadataCollector(file_path)
-            metadata_json = metadata_collector.to_json()
-            if metadata_json:
-                self.producer.send_file_metadata(metadata_json)
+            metadata_dict = metadata_collector.to_dict()
+            if metadata_dict:
+                message = {
+                    "path": file_path,
+                    "metadata": metadata_dict
+                }
+                self.producer.send_file_metadata(message)
