@@ -2,13 +2,14 @@ from kafka import KafkaConsumer
 import json
 from utils.logger import Logger
 
-logger = Logger.get_logger(service_name="DataManager")
+
 
 class KafkaConsumerManager:
-    def __init__(self, kafka_server: str, group_id: str, topics: str):
+    def __init__(self, kafka_server: str, group_id: str, topics: str, logger):
         self.kafka_server = kafka_server
         self.group_id = group_id
         self.topics = topics
+        self.logger = logger
         self.consumer = self.get_consumer()
 
     def get_consumer(self):
@@ -21,8 +22,8 @@ class KafkaConsumerManager:
                 auto_offset_reset='earliest',
                 enable_auto_commit=True
             )
-            logger.info(f"Kafka consumer created for topics: {self.topics}")
+            self.logger.info(f"Kafka consumer created for topics: {self.topics}")
             return consumer
         except Exception as e:
-            logger.error(f"Error creating Kafka consumer: {e}")
+            self.logger.error(f"Error creating Kafka consumer: {e}")
             raise
