@@ -1,6 +1,6 @@
 from services.DataManager.elastic.elastic_connection import ElasticConnection
 from services.DataManager.elastic.elastic_dal import ElasticDAL
-from services.DataManager.db.mongo_connection import MongoDBConnection
+from utils.mongo_connection import MongoDBConnection
 from services.DataManager.db.mongo_dal import MongoDAL
 from utils.logger import Logger
 import hashlib
@@ -58,7 +58,7 @@ class DataManager:
     def save_document(self, file_path: str, metadata: dict):
         try:
             metadata_with_id = self.build_metadata_with_id(metadata)
-            with MongoDBConnection(self.mongo_uri, self.mongo_db) as mongo_db, ElasticConnection(self.elastic_uri) as es_client:
+            with MongoDBConnection(self.mongo_uri, self.mongo_db, logger) as mongo_db, ElasticConnection(self.elastic_uri) as es_client:
                 self.mongo_dal = MongoDAL(mongo_db)
                 self.elastic_dal = ElasticDAL(es_client, self.index_name)
                 self.save_metadata_to_elastic(metadata_with_id)
