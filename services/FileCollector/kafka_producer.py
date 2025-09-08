@@ -1,11 +1,7 @@
-
 from utils.logger import Logger
 from utils.kafka.producer_helper import KafkaProducerHelper
-import json
 
 logger = Logger.get_logger(service_name="FileCollector")
-
-
 
 class KafkaFileMetadataProducer:
     def __init__(self, bootstrap_servers: str, topic: str):
