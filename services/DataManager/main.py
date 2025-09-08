@@ -17,8 +17,9 @@ if __name__ == "__main__":
     
     mongo_uri = os.getenv("MONGO_URI")
     mongo_db = os.getenv("MONGO_DB")
+    mongo_collection = os.getenv("MONGO_COLLECTION")
     elastic_uri = os.getenv("ELASTIC_URI")
-    data_manager = DataManager(mongo_uri, elastic_uri, mongo_db)
+    data_manager = DataManager(mongo_uri, elastic_uri, mongo_db, mongo_collection)
     data_manager.create_index()
 
     for message in consumer_manager.consumer:
