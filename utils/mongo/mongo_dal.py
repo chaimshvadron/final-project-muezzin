@@ -20,8 +20,9 @@ class MongoDAL:
         try:
             file_doc = self.fs.find_one({"unique_id": unique_id})
             if file_doc:
+                file_data = file_doc.read()
                 self.logger.info(f"File retrieved with unique ID: {unique_id}")
-                return file_doc
+                return file_data
             else:
                 self.logger.info(f"No file found with unique ID: {unique_id}")
                 return None

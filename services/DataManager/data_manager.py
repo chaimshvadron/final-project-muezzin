@@ -1,5 +1,5 @@
-from services.DataManager.elastic.elastic_connection import ElasticConnection
-from services.DataManager.elastic.elastic_dal import ElasticDAL
+from utils.elastic.elastic_connection import ElasticConnection
+from utils.elastic.elastic_dal import ElasticDAL
 from utils.mongo.mongo_connection import MongoDBConnection
 from utils.mongo.mongo_dal import MongoDAL
 from utils.logger import Logger
@@ -46,7 +46,7 @@ class DataManager:
 
     def save_metadata_to_elastic(self, metadata_with_id: dict):
         if self.elastic_dal:
-            self.elastic_dal.index_metadata(metadata_with_id)
+            self.elastic_dal.index_document(metadata_with_id)
 
 
     def save_file_to_mongo(self, file_path: str, metadata_with_id: dict):
@@ -61,9 +61,9 @@ class DataManager:
         try:
             metadata_with_id = self.build_metadata_with_id(metadata)
             with MongoDBConnection(self.mongo_uri, self.mongo_db, logger) as mongo_db:
-                with ElasticConnection(self.elastic_uri) as es_client:
+                with ElasticConnection(self.elastic_uri, logger) as es_client:
                     self.mongo_dal = MongoDAL(mongo_db, collection_name, logger)
-                    self.elastic_dal = ElasticDAL(es_client, self.index_name)
+                    self.elastic_dal = ElasticDAL(es_client, self.index_name, logger)
                     self.save_metadata_to_elastic(metadata_with_id)
                     self.save_file_to_mongo(file_path, metadata_with_id)
                     logger.info(f"Document for file '{file_path}' saved successfully.")
