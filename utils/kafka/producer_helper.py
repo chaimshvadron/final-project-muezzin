@@ -17,3 +17,4 @@ class KafkaProducerHelper:
             self.logger.info(f"Sent message to topic {topic}: {value}")
         except Exception as e:
             self.logger.error(f"Failed to send message to topic {topic}: {e}")
+

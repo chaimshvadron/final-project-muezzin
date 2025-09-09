@@ -10,8 +10,9 @@ class Transcriber:
     def transcribe(self, file_path: str):
         try:
             segments, info = self.model.transcribe(file_path)
-            logger.info(f"Transcription successful for {file_path}")
-            return segments
+            transcript = " ".join([segment.text for segment in segments])
+            logger.info(f"Transcription successful for {file_path}, transcript {transcript[:30]}...")
+            return transcript
         except Exception as e:
             logger.error(f"Error during transcription of {file_path}: {e}")
-            return None
+            raise

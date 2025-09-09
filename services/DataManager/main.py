@@ -12,6 +12,8 @@ if __name__ == "__main__":
     kafka_server = os.getenv("KAFKA_BOOTSTRAP_SERVERS")
     kafka_topic = os.getenv("KAFKA_TOPIC")
     group_id = os.getenv("KAFKA_GROUP_ID")
+    kafka_group_id_transcription = os.getenv("KAFKA_GROUP_ID_TRANSCRIPTION")
+    kafka_topic_transcription = os.getenv("KAFKA_TOPIC_TRANSCRIPTION")
     
     consumer_manager = KafkaConsumerManager(kafka_server, group_id, kafka_topic, logger=logger)
     
@@ -19,14 +21,22 @@ if __name__ == "__main__":
     mongo_db = os.getenv("MONGO_DB")
     mongo_collection = os.getenv("MONGO_COLLECTION")
     elastic_uri = os.getenv("ELASTIC_URI")
-    data_manager = DataManager(mongo_uri, elastic_uri, mongo_db, mongo_collection)
+    index_name = os.getenv("ELASTIC_INDEX_NAME")
+    data_manager = DataManager(
+        mongo_uri,
+        elastic_uri,
+        mongo_db,
+        index_name,
+        kafka_server,
+        kafka_topic_transcription
+    )
     data_manager.create_index()
 
     for message in consumer_manager.consumer:
         try:
             metadata = message.value.get('metadata')
             path_file = message.value.get('path')
-            data_manager.save_document(path_file, metadata)
+            data_manager.save_document(path_file, metadata, mongo_collection)
             logger.info(f"Processed message for file: {path_file}")
         except Exception as e:
             logger.error(f"Error processing message: {e}")
