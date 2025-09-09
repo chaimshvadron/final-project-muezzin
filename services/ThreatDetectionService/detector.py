@@ -17,7 +17,7 @@ class Detector:
 			count = text_lower.count(w.lower())
 			if count > 0:
 				less_hostile_counts[w] = count
-
+    
 		return {
 			"hostile": hostile_counts,
 			"less_hostile": less_hostile_counts
