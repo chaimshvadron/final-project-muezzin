@@ -51,19 +51,22 @@ class DataManager:
 
     def save_file_to_mongo(self, file_path: str, metadata_with_id: dict):
         if self.mongo_dal:
+            with open(file_path, "rb") as f:
+                file_data = f.read()
             unique_id = metadata_with_id.get('unique_id')
-            self.mongo_dal.insert_file(file_path, unique_id, {'unique_id': unique_id})
+            self.mongo_dal.insert_file(file_data, unique_id)
 
 
-    def save_document(self, file_path: str, metadata: dict):
+    def save_document(self, file_path: str, metadata: dict, collection_name: str):
         try:
             metadata_with_id = self.build_metadata_with_id(metadata)
-            with MongoDBConnection(self.mongo_uri, self.mongo_db, logger) as mongo_db, ElasticConnection(self.elastic_uri) as es_client:
-                self.mongo_dal = MongoDAL(mongo_db)
-                self.elastic_dal = ElasticDAL(es_client, self.index_name)
-                self.save_metadata_to_elastic(metadata_with_id)
-                self.save_file_to_mongo(file_path, metadata_with_id)
-                logger.info(f"Document for file '{file_path}' saved successfully.")
+            with MongoDBConnection(self.mongo_uri, self.mongo_db, logger) as mongo_db:
+                with ElasticConnection(self.elastic_uri) as es_client:
+                    self.mongo_dal = MongoDAL(mongo_db, collection_name, logger)
+                    self.elastic_dal = ElasticDAL(es_client, self.index_name)
+                    self.save_metadata_to_elastic(metadata_with_id)
+                    self.save_file_to_mongo(file_path, metadata_with_id)
+                    logger.info(f"Document for file '{file_path}' saved successfully.")
         except Exception as e:
             logger.error(f"Error saving document for file '{file_path}': {e}")
 

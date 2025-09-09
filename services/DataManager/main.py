@@ -26,7 +26,7 @@ if __name__ == "__main__":
         try:
             metadata = message.value.get('metadata')
             path_file = message.value.get('path')
-            data_manager.save_document(path_file, metadata)
+            data_manager.save_document(path_file, metadata, mongo_collection)
             logger.info(f"Processed message for file: {path_file}")
         except Exception as e:
             logger.error(f"Error processing message: {e}")
