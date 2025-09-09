@@ -9,13 +9,15 @@ logger = Logger.get_logger(service_name="DataManager")
 
 metadata_mapping = {
     "properties": {
+        "unique_id": {"type": "keyword"},
         "name": {"type": "text"},
         "size": {"type": "integer"},
         "last_modified": {"type": "date"},
         "last_accessed": {"type": "date"},
         "creation_time": {"type": "date"},
         "audio_length": {"type": "float"},
-        "unique_id": {"type": "keyword"}
+        "transcription": {"type": "text"},
+        "transcript_status": {"type": "boolean"}
     }
 }
 
