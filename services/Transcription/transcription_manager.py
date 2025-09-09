@@ -1,5 +1,4 @@
 import os
-
 from utils.elastic.elastic_connection import ElasticConnection
 from utils.elastic.elastic_dal import ElasticDAL
 from utils.mongo.mongo_connection import MongoDBConnection
@@ -12,7 +11,7 @@ import tempfile
 logger = Logger.get_logger(service_name="Transcription")
 
 class TranscriptionManager:
-    def __init__(self, mongo_uri: str, elastic_uri: str, mongo_db: str, collection_name: str, index_name: str = "files_index"):
+    def __init__(self, mongo_uri: str, elastic_uri: str, mongo_db: str, collection_name: str, index_name: str):
         self.mongo_uri = mongo_uri
         self.mongo_db = mongo_db
         self.collection_name = collection_name
@@ -62,14 +61,7 @@ class TranscriptionManager:
         except Exception as e:
             logger.error(f"Error in transcription process for unique_id {unique_id}: {e}")
         finally:
-            os.remove(temp_file_path)
+            if os.path.exists(temp_file_path):
+                os.remove(temp_file_path)
+                logger.info(f"Temporary file deleted: {temp_file_path}")
 
-if __name__ == "__main__":
-    mongo_uri = os.getenv("MONGO_URI")
-    elastic_uri = os.getenv("ELASTIC_URI")
-    mongo_db = os.getenv("MONGO_DB")
-    collection_name = os.getenv("MONGO_COLLECTION")
-    unique_id = "aa2c71cc4b5ff2e42db3cbe2575f87a1b022fea1d1a8ff7a0e310cb722c99bec"
-    manager = TranscriptionManager(mongo_uri, elastic_uri, mongo_db, collection_name)
-    manager.process_transcription(unique_id)
-    

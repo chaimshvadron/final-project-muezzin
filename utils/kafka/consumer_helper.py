@@ -27,3 +27,4 @@ class KafkaConsumerManager:
         except Exception as e:
             self.logger.error(f"Error creating Kafka consumer: {e}")
             raise
+    

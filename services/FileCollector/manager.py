@@ -1,13 +1,15 @@
 from services.FileCollector.collector import FileCollector
 from services.FileCollector.metadata import FileMetadataCollector
-from services.FileCollector.kafka_producer import KafkaFileMetadataProducer
+from utils.kafka.producer_helper import KafkaProducerHelper
+
 from utils.logger import Logger
 logger = Logger.get_logger(service_name="FileCollector")
 
 class FileCollectorManager:
     def __init__(self, directory_path: str, kafka_bootstrap_servers: str, kafka_topic: str):
         self.collector = FileCollector(directory_path)
-        self.producer = KafkaFileMetadataProducer(kafka_bootstrap_servers, kafka_topic)
+        self.producer = KafkaProducerHelper(kafka_bootstrap_servers, logger)
+        self.kafka_topic = kafka_topic
 
     def process_files(self):
         logger.info("Starting to process files.")
@@ -23,5 +25,5 @@ class FileCollectorManager:
                     "path": file_path,
                     "metadata": metadata_dict
                 }
-                self.producer.send_file_metadata(message)
+                self.producer.send_message(self.kafka_topic, message)
         logger.info("Finished processing files.")

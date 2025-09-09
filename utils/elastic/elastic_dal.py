@@ -41,7 +41,7 @@ class ElasticDAL:
         
     def update_document(self, doc_id: str, update_fields: dict):
         try:
-            response = self.es.update(index=self.index_name, id=doc_id, doc={"doc": update_fields})
+            response = self.es.update(index=self.index_name, id=doc_id, doc=update_fields)
             self.logger.info(f"Document '{doc_id}' updated in '{self.index_name}'.")
             return response
         except Exception as e:

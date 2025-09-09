@@ -3,6 +3,7 @@ from utils.elastic.elastic_dal import ElasticDAL
 from utils.mongo.mongo_connection import MongoDBConnection
 from utils.mongo.mongo_dal import MongoDAL
 from utils.logger import Logger
+from utils.kafka.producer_helper import KafkaProducerHelper
 import hashlib
 
 logger = Logger.get_logger(service_name="DataManager")
@@ -23,13 +24,15 @@ metadata_mapping = {
 
 
 class DataManager:
-    def __init__(self, mongo_uri: str, elastic_uri: str, mongo_db: str, index_name: str = "files_index"):
+    def __init__(self, mongo_uri: str, elastic_uri: str, mongo_db: str, index_name: str, kafka_bootstrap_servers: str, kafka_topic: str):
         self.mongo_uri = mongo_uri
         self.mongo_db = mongo_db
         self.elastic_uri = elastic_uri
         self.index_name = index_name
+        self.kafka_topic  = kafka_topic
         self.mongo_dal = None
         self.elastic_dal = None
+        self.producer = KafkaProducerHelper(kafka_bootstrap_servers, logger)
 
     def create_index(self):
         if self.elastic_dal:
@@ -68,6 +71,7 @@ class DataManager:
                     self.elastic_dal = ElasticDAL(es_client, self.index_name, logger)
                     self.save_metadata_to_elastic(metadata_with_id)
                     self.save_file_to_mongo(file_path, metadata_with_id)
+                    self.producer.send_message(self.kafka_topic, metadata_with_id)
                     logger.info(f"Document for file '{file_path}' saved successfully.")
         except Exception as e:
             logger.error(f"Error saving document for file '{file_path}': {e}")
