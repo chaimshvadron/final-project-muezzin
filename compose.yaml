@@ -79,7 +79,6 @@ services:
       - ELASTIC_URI=http://elasticsearch:9200
       - NAME_LOGGER=my_app_logger
       - INDEX_LOGS=app-logs
-      - CHECK_INTERVAL=60
     depends_on:
       - kafka
       - elasticsearch
