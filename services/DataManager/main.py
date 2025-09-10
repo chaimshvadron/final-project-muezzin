@@ -11,11 +11,9 @@ load_dotenv()
 if __name__ == "__main__":
     kafka_server = os.getenv("KAFKA_BOOTSTRAP_SERVERS")
     kafka_topic = os.getenv("KAFKA_TOPIC")
-    group_id = os.getenv("KAFKA_GROUP_ID")
-    kafka_group_id_transcription = os.getenv("KAFKA_GROUP_ID_TRANSCRIPTION")
     kafka_topic_transcription = os.getenv("KAFKA_TOPIC_TRANSCRIPTION")
-    
-    consumer_manager = KafkaConsumerManager(kafka_server, group_id, kafka_topic, logger=logger)
+    kafka_group_id = os.getenv("KAFKA_GROUP_ID")
+    consumer_manager = KafkaConsumerManager(kafka_server, kafka_topic, logger=logger, group_id=kafka_group_id)
     
     mongo_uri = os.getenv("MONGO_URI")
     mongo_db = os.getenv("MONGO_DB")

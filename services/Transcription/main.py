@@ -9,18 +9,18 @@ logger = Logger.get_logger(service_name="Transcription")
 
 def main():
     kafka_server = os.getenv("KAFKA_BOOTSTRAP_SERVERS")
-    kafka_topic = os.getenv("KAFKA_TOPIC_TRANSCRIPTION")
-    group_id = os.getenv("KAFKA_GROUP_ID_TRANSCRIPTION")
-    
-    consumer_manager = KafkaConsumerManager(kafka_server, group_id, kafka_topic, logger=logger)
-    
+    kafka_topic_transcription = os.getenv("KAFKA_TOPIC_TRANSCRIPTION")
+    kafka_group_id = os.getenv("KAFKA_GROUP_ID")
+    consumer_manager = KafkaConsumerManager(kafka_server, kafka_topic_transcription, logger=logger, group_id=kafka_group_id)
+
     mongo_uri = os.getenv("MONGO_URI")
     mongo_db = os.getenv("MONGO_DB")
     mongo_collection = os.getenv("MONGO_COLLECTION")
     elastic_uri = os.getenv("ELASTIC_URI")
     index_name = os.getenv("ELASTIC_INDEX_NAME")
+    kafka_topic_detection = os.getenv("KAFKA_TOPIC_DETECTION")
 
-    transcription_manager = TranscriptionManager(mongo_uri, elastic_uri, mongo_db, mongo_collection, index_name)
+    transcription_manager = TranscriptionManager(mongo_uri, elastic_uri, mongo_db, mongo_collection, index_name, kafka_server, kafka_topic_detection)
 
     for message in consumer_manager.consumer:
         try:
