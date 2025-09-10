@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 from elasticsearch import Elasticsearch
 from datetime import datetime
 from dotenv import load_dotenv
@@ -11,6 +12,18 @@ INDEX_LOGS = os.getenv("INDEX_LOGS")
 
 class Logger:
     _logger = None
+    
+    @classmethod
+    def _wait_for_elasticsearch(cls, es_host):
+        while True:
+            try:
+                es = Elasticsearch(es_host)
+                es.info()
+                return es
+            except Exception as e:
+                print(f"Waiting for Elasticsearch to be available... {e}")
+                time.sleep(5)
+    
     @classmethod
     def get_logger(cls, name=NAME_LOGGER, es_host=ES_HOST, index=INDEX_LOGS, level=logging.DEBUG, service_name="unknown_service"):
         if cls._logger:
@@ -18,7 +31,8 @@ class Logger:
         logger = logging.getLogger(name)
         logger.setLevel(level)
         if not logger.handlers:
-            es = Elasticsearch(es_host)
+            es = cls._wait_for_elasticsearch(es_host)
+            
             class ESHandler(logging.Handler):
                 def emit(self, record):
                     try:

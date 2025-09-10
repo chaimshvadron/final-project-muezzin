@@ -18,7 +18,7 @@ class FileMetadataCollector:
                 "size": state.st_size,
                 "last_modified": datetime.fromtimestamp(state.st_mtime),
                 "last_accessed": datetime.fromtimestamp(state.st_atime),
-                "creation_time": datetime.fromtimestamp(state.st_birthtime),
+                "creation_time": datetime.fromtimestamp(state.st_ctime),
                 "audio_length": length_in_seconds,
             }
             logger.info(f"Metadata collected for file {self.file_path}: {metadata}")

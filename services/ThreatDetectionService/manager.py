@@ -4,7 +4,6 @@ from services.ThreatDetectionService.detector import Detector
 from utils.logger import Logger
 
 import base64
-import json
 
 logger = Logger.get_logger(service_name="ThreatDetectionService")
 
