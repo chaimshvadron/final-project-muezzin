@@ -14,3 +14,7 @@ if __name__ == "__main__":
     manager = FileCollectorManager(directory_path, kafka_bootstrap_servers, kafka_topic)
     manager.process_files()
     logger.info("FileCollector service finished.")
+    
+    while True:
+        pass
+        

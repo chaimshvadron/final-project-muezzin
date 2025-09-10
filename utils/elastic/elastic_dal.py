@@ -17,9 +17,13 @@ class ElasticDAL:
             self.logger.error(f"Error creating index '{self.index_name}': {e}")
             raise
 
+    def refresh_index(self):
+        self.es.indices.refresh(index=self.index_name)
+
+
     def index_document(self, document: dict):
         try:
-            response = self.es.index(index=self.index_name, document=document, refresh="wait_for")
+            response = self.es.index(index=self.index_name, document=document)
             self.logger.info(f"Document indexed in '{self.index_name}': {response.get('_id')}")
             return response
         except Exception as e:
@@ -28,6 +32,7 @@ class ElasticDAL:
         
     def get_id_by_search(self, query: dict):
         try:
+            self.refresh_index()
             response = self.es.search(index=self.index_name, query=query)
             self.logger.info(f"Search executed on '{self.index_name}'.")
             hits = response.get('hits', {}).get('hits', [])
@@ -39,9 +44,21 @@ class ElasticDAL:
             self.logger.error(f"Error executing search: {e}")
             raise
         
+    def search_documents(self, query: dict, size: int = 10):
+        """General search function that returns all matching documents."""
+        try:
+            self.refresh_index()
+            response = self.es.search(index=self.index_name, query=query, size=size)
+            self.logger.info(f"Search executed on '{self.index_name}', found {response['hits']['total']['value']} results.")
+            return response
+        except Exception as e:
+            self.logger.error(f"Error executing search: {e}")
+            raise
+        
     def update_document(self, doc_id: str, update_fields: dict):
         try:
-            response = self.es.update(index=self.index_name, id=doc_id, doc=update_fields, refresh="wait_for")
+            self.refresh_index()
+            response = self.es.update(index=self.index_name, id=doc_id, doc=update_fields)
             self.logger.info(f"Document '{doc_id}' updated in '{self.index_name}'.")
             return response
         except Exception as e:

@@ -1,0 +1,162 @@
+version: '3.8'
+
+networks:
+  muezzin-network:
+    driver: bridge
+
+volumes:
+  data-podcasts:
+
+services:
+  # Infrastructure Services
+  kafka:
+    image: apache/kafka:latest
+    container_name: kafka-broker
+    ports:
+      - "9092:9092"
+    networks:
+      - muezzin-network
+    environment:
+      KAFKA_LISTENERS: CONTROLLER://localhost:9091,HOST://0.0.0.0:9092,DOCKER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: HOST://localhost:9092,DOCKER://kafka:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,DOCKER:PLAINTEXT,HOST:PLAINTEXT
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9091
+      KAFKA_INTER_BROKER_LISTENER_NAME: DOCKER
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    restart: unless-stopped
+
+  mongo:
+    image: mongodb/mongodb-community-server:latest
+    container_name: mongo-db
+    ports:
+      - "27017:27017"
+    networks:
+      - muezzin-network
+    restart: unless-stopped
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    container_name: elasticsearch
+    ports:
+      - "9200:9200"
+    networks:
+      - muezzin-network
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+    restart: unless-stopped
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.0
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    networks:
+      - muezzin-network
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+
+  filecollector:
+    build:
+      context: .
+      dockerfile: services/FileCollector/Dockerfile
+    container_name: filecollector-service
+    networks:
+      - muezzin-network
+    volumes:
+      - ./data/podcasts:/app/data/podcasts
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9093
+      - KAFKA_TOPIC=files-topic
+      - DIRECTORY_PATH=/app/data/podcasts
+      - ELASTIC_URI=http://elasticsearch:9200
+      - NAME_LOGGER=my_app_logger
+      - INDEX_LOGS=app-logs
+      - CHECK_INTERVAL=60
+    depends_on:
+      - kafka
+      - elasticsearch
+    restart: unless-stopped
+
+  datamanager:
+    build:
+      context: .
+      dockerfile: services/DataManager/Dockerfile
+    container_name: datamanager-service
+    networks:
+      - muezzin-network
+    volumes:
+      - ./data/podcasts:/app/data/podcasts
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9093
+      - KAFKA_TOPIC=files-topic
+      - KAFKA_TOPIC_TRANSCRIPTION=transcription-topic
+      - KAFKA_GROUP_ID=main-consumer-group
+      - MONGO_URI=mongodb://mongo:27017
+      - MONGO_DB=files_db
+      - MONGO_COLLECTION=files_collection
+      - ELASTIC_URI=http://elasticsearch:9200
+      - ELASTIC_INDEX_NAME=files_index
+      - NAME_LOGGER=my_app_logger
+      - INDEX_LOGS=app-logs
+    depends_on:
+      - kafka
+      - mongo
+      - elasticsearch
+    restart: unless-stopped
+
+  transcription:
+    build:
+      context: .
+      dockerfile: services/Transcription/Dockerfile
+    container_name: transcription-service
+    networks:
+      - muezzin-network
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9093
+      - KAFKA_TOPIC_TRANSCRIPTION=transcription-topic
+      - KAFKA_TOPIC_DETECTION=detected-topic
+      - KAFKA_GROUP_ID=main-consumer-group
+      - MONGO_URI=mongodb://mongo:27017
+      - MONGO_DB=files_db
+      - MONGO_COLLECTION=files_collection
+      - ELASTIC_URI=http://elasticsearch:9200
+      - ELASTIC_INDEX_NAME=files_index
+      - NAME_LOGGER=my_app_logger
+      - INDEX_LOGS=app-logs
+    depends_on:
+      - kafka
+      - mongo
+      - elasticsearch
+      - datamanager
+    restart: unless-stopped
+
+  threatdetection:
+    build:
+      context: .
+      dockerfile: services/ThreatDetectionService/Dockerfile
+    container_name: threatdetection-service
+    networks:
+      - muezzin-network
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9093
+      - KAFKA_TOPIC_DETECTION=detected-topic
+      - KAFKA_GROUP_ID=main-consumer-group
+      - ELASTIC_URI=http://elasticsearch:9200
+      - ELASTIC_INDEX_NAME=files_index
+      - ENCODED_HOSTILE_WORDS=R2Vub2NpZGUsV2FyIENyaW1lcyxBcGFydGhlaWQsTWFzc2FjcmUsTmFrYmEsRGlzcGxhY2VtZW50LEh1bWFuaXRhcmlhbiBDcmlzaXMsQmxvY2thZGUsT2NjdXBhdGlvbixSZWZ1Z2VlcyxJQ0MsQkRT
+      - ENCODED_LESS_HOSTILE_WORDS=RnJlZWRvbSBGbG90aWxsYSxSZXNpc3RhbmNlLExpYmVyYXRpb24sRnJlZSBQYWxlc3RpbmUsR2F6YSxDZWFzZWZpcmUsUHJvdGVzdCxVTlJXQQ==
+      - NAME_LOGGER=my_app_logger
+      - INDEX_LOGS=app-logs
+    depends_on:
+      - kafka
+      - elasticsearch
+      - transcription
+    restart: unless-stopped
