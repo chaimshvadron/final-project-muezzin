@@ -1,5 +1,4 @@
 import os
-from datetime import datetime
 from utils.logger import Logger
 logger = Logger.get_logger(service_name="FileCollector")
 

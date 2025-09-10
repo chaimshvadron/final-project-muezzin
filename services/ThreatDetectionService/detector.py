@@ -31,9 +31,9 @@ class Detector:
 		return bds_percent
 
 	def determine_threat_level(self, bds_percent):
-		if bds_percent < 2:
+		if bds_percent < 5:
 			return "none"
-		elif bds_percent <= 5:
+		elif bds_percent <= 15:
 			return "medium"
 		else:
 			return "high"
