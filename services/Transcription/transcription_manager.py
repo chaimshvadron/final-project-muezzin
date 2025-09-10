@@ -5,18 +5,21 @@ from utils.mongo.mongo_connection import MongoDBConnection
 from utils.mongo.mongo_dal import MongoDAL
 from utils.logger import Logger
 from services.Transcription.transcriber import Transcriber
+from utils.kafka.producer_helper import KafkaProducerHelper
 from utils.logger import Logger
 import tempfile
 
 logger = Logger.get_logger(service_name="Transcription")
 
 class TranscriptionManager:
-    def __init__(self, mongo_uri: str, elastic_uri: str, mongo_db: str, collection_name: str, index_name: str):
+    def __init__(self, mongo_uri: str, elastic_uri: str, mongo_db: str, collection_name: str, index_name: str, kafka_bootstrap_servers: str, kafka_topic: str):
         self.mongo_uri = mongo_uri
         self.mongo_db = mongo_db
         self.collection_name = collection_name
         self.elastic_uri = elastic_uri
         self.index_name = index_name
+        self.kafka_topic = kafka_topic
+        self.kafka_producer = KafkaProducerHelper(kafka_bootstrap_servers, logger)
         self.mongo_dal = None
         self.elastic_dal = None
         self.transcriber = Transcriber(model_size="small", device="cpu", compute_type="float32")
@@ -54,9 +57,11 @@ class TranscriptionManager:
                     mongo_dal = MongoDAL(mongo_db, self.collection_name, logger)
                     elastic_dal = ElasticDAL(es_client, self.index_name, logger)
                     id_doc = self.get_id_by_unique_id(elastic_dal, unique_id)
+                    print(f"id_doc: {id_doc}")
                     temp_file_path = self.fetch_and_save_temp_file(mongo_dal, unique_id)
                     transcription = self.transcribe_audio(temp_file_path)
                     self.save_transcription(elastic_dal, id_doc, transcription)
+                    self.kafka_producer.send_message(self.kafka_topic, {"id_doc": id_doc, "transcription": transcription})
                     logger.info(f"Transcription process completed for unique_id: {unique_id}")
         except Exception as e:
             logger.error(f"Error in transcription process for unique_id {unique_id}: {e}")

@@ -19,7 +19,7 @@ class ElasticDAL:
 
     def index_document(self, document: dict):
         try:
-            response = self.es.index(index=self.index_name, document=document)
+            response = self.es.index(index=self.index_name, document=document, refresh="wait_for")
             self.logger.info(f"Document indexed in '{self.index_name}': {response.get('_id')}")
             return response
         except Exception as e:
@@ -41,7 +41,7 @@ class ElasticDAL:
         
     def update_document(self, doc_id: str, update_fields: dict):
         try:
-            response = self.es.update(index=self.index_name, id=doc_id, doc=update_fields)
+            response = self.es.update(index=self.index_name, id=doc_id, doc=update_fields, refresh="wait_for")
             self.logger.info(f"Document '{doc_id}' updated in '{self.index_name}'.")
             return response
         except Exception as e:
